@@ -89,14 +89,14 @@ func RefreshRedisCache(ctx context.Context, market string) error {
 	}
 
 	var wg sync.WaitGroup
-
+	total_count := 0
 	counter := 0
 
 	for {
 		var ebayGMCLookup EbayGMCLookup
 		err := it.Next(&ebayGMCLookup)
 		if errors.Is(err, iterator.Done) {
-			fmt.Println("All results processed...")
+			log.Infof("Done processing %d rows", it.TotalRows)
 			wg.Wait()
 			break
 		}
@@ -114,18 +114,23 @@ func RefreshRedisCache(ctx context.Context, market string) error {
 			}
 
 		}()
-		if counter == 250 {
-			fmt.Print(".")
+
+		if counter == 100 {
 			wg.Wait()
+			if total_count%1000 == 0 && total_count != 0 {
+				log.Infof("%d records from inserted for market %s", total_count, market)
+			}
 			// reset the counter
+			total_count += counter
 			counter = 0
 		}
 		counter++
+
 	}
 
 	// Stop the clock and clean up!
 	elapsed := time.Since(start)
-	fmt.Println("Took ", elapsed)
+	log.Infof("Updating cache done for market %s. It took %v", market, elapsed)
 	err = pool.Close()
 	if err != nil {
 		return err

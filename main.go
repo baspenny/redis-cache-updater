@@ -58,7 +58,7 @@ func UpdateCache(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Could not decode request, please check if the request body is correct"))
 		return
 	}
-
+	log.Infoj("Request received for cache update", dispatchData)
 	err := cache.RefreshRedisCache(ctx, dispatchData.Market)
 	if err != nil {
 		log.Errorf("Could not refresh cache: %s", err.Error())
@@ -73,8 +73,9 @@ func UpdateCache(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	log.Info("Starting cache updater web server")
 	if err := godotenv.Load(".env"); err != nil {
-		log.Alert("Error loading.env file")
+		log.Info("No .env file found, using environment variables")
 	}
 
 	http.HandleFunc("/refresh", UpdateCache)

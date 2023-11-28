@@ -15,7 +15,6 @@ const maxIdleConnections = 100
 func Pool() (*redis.Pool, error) {
 	if redisPool == nil {
 
-		fmt.Println("No redis pool")
 		// Pre-declare err to avoid shadowing redisPool
 		var err error
 		redisPool, err = initializeRedis()
@@ -40,10 +39,7 @@ func getRedisConfig() *RedisConfig {
 
 // initializeRedis initializes and returns a Redis connection pool
 func initializeRedis() (*redis.Pool, error) {
-
-	fmt.Println("Create redis pool")
 	rc := getRedisConfig()
-
 	redisAddr := fmt.Sprintf("%s:%s", rc.Host, rc.Port)
 
 	var dialOptions []redis.DialOption
