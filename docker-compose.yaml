@@ -1,0 +1,21 @@
+version: "3.6"
+
+services:
+  web:
+    build: .
+    ports:
+      - 8080:8080
+#    env_file:
+#      - .env
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=somepassword
+      - REDIS_PORT=6379
+
+  redis:
+    image: redis:alpine
+    ports:
+      - 6379:6379
+    volumes:
+      - ./data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
