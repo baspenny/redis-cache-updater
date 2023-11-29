@@ -19,8 +19,8 @@ type DispatchData struct {
 }
 
 func getStats(w http.ResponseWriter, _ *http.Request) {
-	ctx := context.Background()
-	stats, err := cache.GetStats(ctx)
+	//ctx := context.Background()
+	stats, err := cache.GetStats()
 	if err != nil {
 		log.Errorf("Could not obtain stats: %s", err.Error())
 	}

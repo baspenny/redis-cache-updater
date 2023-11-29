@@ -5,8 +5,8 @@ services:
     build: .
     ports:
       - 8080:8080
-#    env_file:
-#      - .env
+    volumes:
+      - .:/app
     environment:
       - REDIS_HOST=redis
       - REDIS_PASSWORD=somepassword
@@ -19,3 +19,4 @@ services:
     volumes:
       - ./data:/data
       - ./redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf

@@ -13,4 +13,6 @@ deploy_cloud_run: connect_to_project
 		--image us-docker.pkg.dev/glo-cli-ebay-datastreaming/ebay-dsi/cache-updater:latest \
       	--region=${GCP_REGION} \
         --update-secrets=REDIS_PASSWORD=redis-password:latest \
-        --set-env-vars='REDIS_HOST=34.106.243.151,REDIS_PORT=6379'
+        --set-env-vars='REDIS_HOST=34.106.243.151,REDIS_PORT=6379' \
+        --service-account=ebay-streaming-cache-updater@glo-cli-ebay-datastreaming.iam.gserviceaccount.com \
+        --allow-unauthenticated

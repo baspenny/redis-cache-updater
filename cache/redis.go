@@ -23,14 +23,15 @@ type RedisConfig struct {
 	Password string
 }
 
-func insertInRedis(ctx context.Context, p *redis.Pool, d *EbayGMCLookup, market string) error {
+func insertInRedis(p *redis.Pool, d *EbayGMCLookup, market string) error {
 	conn := p.Get()
 	defer func(conn redis.Conn) {
 		err := conn.Close()
 		if err != nil {
-
+			log.Errorf("Failed to close Redis connection: %v", err)
 		}
 	}(conn)
+
 	_, err := conn.Do("SET", market+":"+d.Brand, d.GmcAccountId)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -39,7 +40,7 @@ func insertInRedis(ctx context.Context, p *redis.Pool, d *EbayGMCLookup, market 
 	return nil
 }
 
-func GetStats(ctx context.Context) (string, error) {
+func GetStats() (string, error) {
 	pool, err := Pool()
 	if err != nil {
 		return "", err
@@ -56,6 +57,7 @@ func GetStats(ctx context.Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	pool.Close()
 	return stats, nil
 }
 
@@ -72,6 +74,13 @@ func RefreshRedisCache(ctx context.Context, market string) error {
 	if err != nil {
 		return err
 	}
+	// Removed this because it was causing the closing of the pool before the goroutines could finish
+	//defer func(pool *redis.Pool) {
+	//	err := pool.Close()
+	//	if err != nil {
+	//		log.Warningf("Could not close Redis pool: %v", err.Error())
+	//	}
+	//}(pool)
 
 	client, err := bigquery.NewClient(ctx, "nmpi-feeds")
 	if err != nil {
@@ -108,7 +117,7 @@ func RefreshRedisCache(ctx context.Context, market string) error {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			err = insertInRedis(ctx, pool, &ebayGMCLookup, market)
+			err = insertInRedis(pool, &ebayGMCLookup, market)
 			if err != nil {
 				log.Warningf("Could not insert record: %v", err.Error())
 			}
@@ -117,7 +126,7 @@ func RefreshRedisCache(ctx context.Context, market string) error {
 
 		if counter == 100 {
 			wg.Wait()
-			if total_count%1000 == 0 && total_count != 0 {
+			if total_count%10000 == 0 && total_count != 0 {
 				log.Infof("%d records from inserted for market %s", total_count, market)
 			}
 			// reset the counter
@@ -127,11 +136,11 @@ func RefreshRedisCache(ctx context.Context, market string) error {
 		counter++
 
 	}
-
+	wg.Wait()
 	// Stop the clock and clean up!
 	elapsed := time.Since(start)
 	log.Infof("Updating cache done for market %s. It took %v", market, elapsed)
-	err = pool.Close()
+	//err = pool.Close()
 	if err != nil {
 		return err
 	}

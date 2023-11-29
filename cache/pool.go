@@ -9,8 +9,6 @@ import (
 
 var redisPool *redis.Pool
 
-const maxIdleConnections = 100
-
 // Pool returns a pool to get Redis connections from
 func Pool() (*redis.Pool, error) {
 	if redisPool == nil {
@@ -49,7 +47,7 @@ func initializeRedis() (*redis.Pool, error) {
 
 	return &redis.Pool{
 		Wait:    true,
-		MaxIdle: maxIdleConnections,
+		MaxIdle: 100,
 		Dial: func() (redis.Conn, error) {
 			conn, err := redis.Dial("tcp", redisAddr, dialOptions...)
 			if err != nil {
