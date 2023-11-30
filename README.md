@@ -1,18 +1,24 @@
-# Cache updater
+# Ebay Data Streaming - Cache updater
 
-This is a simple script that will update the cache of Google Merchant Center.
+A simple HTTP webserver that updates the cache of mapping Ebay Seller and Google Merchant Center ids.
 
 
-## Usage
+## Local development
+You can run the application locally with docker-compose or without docker-compose. If you run it without docker-compose 
+you will need to have a redis instance running.
+
 ### Docker-compose
 Copy the `.env.example` to `.env` and fill in the required variables
+
 ```text
 REDIS_HOST=<redis_host>
 REDIS_PASSWORD=<redis_password>
 REDIS_PORT=<redis_port>
 ```
+
 ### Local
-set the environment variables that are stated in the  `.env.ecxmple` file and load them in your terminal.  
+Set the environment variables that are stated in the  `.env.example` file and load them in your terminal.
+Also make sure that you have a redis instance running. 
 After that you can start the applicaton with:
 
 ```shell
@@ -20,16 +26,23 @@ go run .
 ```
 The http server will spin up and listen on port `8080`. You can now make calls to the server.
 
-### API calls
-The API is very simple and only has two endpoints.
+### API endpoints
+#### Refresh Cache:
+```
+POST /refresh
+```
 
 ```json
+# Body
 {
-	"project_id": "nmpi-feeds",
-	"dataset_id": "FEED_TEMP_TABLES",
-	"table_id": "EBAY_UK_11232",
+	"project_id": "<Project_id>",
+	"dataset_id": "<Dataset_id>",
+	"table_id": "<Table_id>",
 	"market": "the market UK|DE|FR|IT"
 }
 ```
+Returns `200` if the cache was updated successfully.
 
-
+## Deployment
+The application is deployed on Google Cloud Run. The deployment is done with the `Makefile` script.
+You can find the commands in the Makefile and they are self-explanatory.

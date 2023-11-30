@@ -18,25 +18,6 @@ type DispatchData struct {
 	Market    string `json:"market"`
 }
 
-func getStats(w http.ResponseWriter, _ *http.Request) {
-	//ctx := context.Background()
-	stats, err := cache.GetStats()
-	if err != nil {
-		log.Errorf("Could not obtain stats: %s", err.Error())
-	}
-	_, err = w.Write([]byte(stats))
-	if err != nil {
-		return
-	}
-}
-
-func PingPong(w http.ResponseWriter, _ *http.Request) {
-	_, err := w.Write([]byte("Pong"))
-	if err != nil {
-		return
-	}
-}
-
 func UpdateCache(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		log.Warningf("Method not allowed: %s", r.Method)
@@ -79,8 +60,6 @@ func main() {
 	}
 
 	http.HandleFunc("/refresh", UpdateCache)
-	http.HandleFunc("/ping", PingPong)
-	http.HandleFunc("/stats", getStats)
 
 	port := os.Getenv("PORT")
 	if port == "" {

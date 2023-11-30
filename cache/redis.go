@@ -37,28 +37,14 @@ func insertInRedis(p *redis.Pool, d *EbayGMCLookup, market string) error {
 		fmt.Println(err.Error())
 		return err
 	}
+	// Set the cache to expire after 8 days
+	expireTime := 8 * 86400 * time.Second
+	_, err = conn.Do("EXPIRE", market+":"+d.Brand, expireTime.Seconds())
+	if err != nil {
+		return err
+	}
+
 	return nil
-}
-
-func GetStats() (string, error) {
-	pool, err := Pool()
-	if err != nil {
-		return "", err
-	}
-	conn := pool.Get()
-	defer func(conn redis.Conn) {
-		err := conn.Close()
-		if err != nil {
-
-		}
-	}(conn)
-	stats, err := redis.String(conn.Do("MEMORY STATS"))
-	fmt.Println(stats)
-	if err != nil {
-		return "", err
-	}
-	pool.Close()
-	return stats, nil
 }
 
 func RefreshRedisCache(ctx context.Context, market string) error {
@@ -110,7 +96,6 @@ func RefreshRedisCache(ctx context.Context, market string) error {
 			break
 		}
 		if err != nil {
-			//panic("Cannot read data" + err.Error())
 			return err
 		}
 
@@ -140,9 +125,6 @@ func RefreshRedisCache(ctx context.Context, market string) error {
 	// Stop the clock and clean up!
 	elapsed := time.Since(start)
 	log.Infof("Updating cache done for market %s. It took %v", market, elapsed)
-	//err = pool.Close()
-	if err != nil {
-		return err
-	}
+
 	return nil
 }
